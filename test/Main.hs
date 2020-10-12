@@ -2,23 +2,30 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE IncoherentInstances #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Main where
 
-import Internal.Determinant
-import Internal.Matrix
+import Data.Proxy (Proxy (..))
+import GHC.TypeNats (Nat)
 import Linear (V2 (..), V3 (..), V4 (..))
 import Linear.Matrix (det22, det33, det44)
+import Test.Hspec
+
+import Internal.Determinant
+import Internal.Matrix
 import QLinear.Constructor.Matrix
 import QLinear.Constructor.Operator
 import QLinear.Identity
 import QLinear.Index
 import QLinear.Operations
-import Test.Hspec
 
 newtype TestMatrix m n a = TestMatrix (Matrix m n a)
 
@@ -205,8 +212,15 @@ main = hspec do
 
   describe "Matrix pattern" do
     it "example" do
-      let [matrix| a b; c d |] = [matrix| 3 15; 9 20 |]
+      let
+        (matrixPatHelper -> MatrixPat (Proxy :: Proxy 2) (Proxy :: Proxy 2) [[a, b], [c, d]]) =
+          [matrix| 3 15; 9 20 |]
       a `shouldBe` 3
       b `shouldBe` 15
       c `shouldBe` 9
       d `shouldBe` 20
+
+data MatrixPat (m :: Nat) (n :: Nat) a = MatrixPat (Proxy m) (Proxy n) [[a]]
+
+matrixPatHelper :: Matrix m n a -> MatrixPat m n a
+matrixPatHelper (Matrix _ elems) = MatrixPat Proxy Proxy elems
