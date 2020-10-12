@@ -212,15 +212,8 @@ main = hspec do
 
   describe "Matrix pattern" do
     it "example" do
-      let
-        (matrixPatHelper -> MatrixPat (Proxy :: Proxy 2) (Proxy :: Proxy 2) [[a, b], [c, d]]) =
-          [matrix| 3 15; 9 20 |]
+      let [matrix| a b; c d |] = [matrix| 3 15; 9 20 |]
       a `shouldBe` 3
       b `shouldBe` 15
       c `shouldBe` 9
       d `shouldBe` 20
-
-data MatrixPat (m :: Nat) (n :: Nat) a = MatrixPat (Proxy m) (Proxy n) [[a]]
-
-matrixPatHelper :: Matrix m n a -> MatrixPat m n a
-matrixPatHelper (Matrix _ elems) = MatrixPat Proxy Proxy elems
